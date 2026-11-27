@@ -1,0 +1,47 @@
+import type { CreateTaskInput, Task, UpdateTaskInput } from '../domain/task.js';
+import { TaskRepository } from '../db/task-repository.js';
+
+export class TaskInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TaskInputError';
+  }
+}
+
+function normalizeTitle(title: string): string {
+  const normalized = title.trim();
+  if (normalized.length === 0 || normalized.length > 200) {
+    throw new TaskInputError('Task title must contain between 1 and 200 characters');
+  }
+  return normalized;
+}
+
+export class TaskService {
+  constructor(private readonly tasks: TaskRepository) {}
+
+  create(input: CreateTaskInput): Task {
+    return this.tasks.create({
+      ...input,
+      title: normalizeTitle(input.title),
+    });
+  }
+
+  getById(id: number): Task | null {
+    return this.tasks.getById(id);
+  }
+
+  list(): Task[] {
+    return this.tasks.list();
+  }
+
+  update(id: number, input: UpdateTaskInput): Task | null {
+    const normalizedInput = input.title === undefined
+      ? input
+      : { ...input, title: normalizeTitle(input.title) };
+    return this.tasks.update(id, normalizedInput);
+  }
+
+  delete(id: number): boolean {
+    return this.tasks.delete(id);
+  }
+}
