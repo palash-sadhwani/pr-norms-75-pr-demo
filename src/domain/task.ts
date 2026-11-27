@@ -21,3 +21,8 @@ export interface UpdateTaskInput {
   description?: string | null;
   status?: TaskStatus;
 }
+
+export interface TaskListOptions {
+  limit: number;
+  offset: number;
+}

@@ -9,12 +9,37 @@ test('task routes expose CRUD operations with stable response envelopes', async 
   const initialList = await fetch(`${api.baseUrl}/tasks`);
   assert.equal(initialList.status, 200);
   assert.match(initialList.headers.get('x-request-id') ?? '', /^[\da-f-]{36}$/i);
-  assert.deepEqual(await initialList.json(), { data: [] });
+  assert.deepEqual(await initialList.json(), {
+    data: [],
+    pagination: { limit: 20, offset: 0 },
+  });
 
   const createdResponse = await fetch(`${api.baseUrl}/tasks`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ title: 'Review API changes' }),
+  });
+
+  test('task list uses the requested bounded page', async (context) => {
+    const api = await createTestServer();
+    context.after(api.close);
+
+    for (const title of ['First task', 'Second task', 'Third task']) {
+      await fetch(`${api.baseUrl}/tasks`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+    }
+
+    const response = await fetch(`${api.baseUrl}/tasks?limit=1&offset=1`);
+    assert.equal(response.status, 200);
+    const page = await response.json() as {
+      data: Array<{ title: string }>;
+      pagination: { limit: number; offset: number };
+    };
+    assert.deepEqual(page.data.map((task) => task.title), ['Second task']);
+    assert.deepEqual(page.pagination, { limit: 1, offset: 1 });
   });
   assert.equal(createdResponse.status, 201);
   const created = await createdResponse.json() as { data: { id: number; title: string } };

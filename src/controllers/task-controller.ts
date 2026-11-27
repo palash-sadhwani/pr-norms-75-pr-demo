@@ -1,13 +1,17 @@
 import type { Request, Response } from 'express';
 import type { TaskService } from '../services/task-service.js';
-import { parseTaskId, validateCreateTask, validateUpdateTask } from '../validation/task-validation.js';
+import { parseTaskId, parseTaskListOptions, validateCreateTask, validateUpdateTask } from '../validation/task-validation.js';
 import { NotFoundError } from '../middleware/error-handler.js';
 
 export class TaskController {
   constructor(private readonly tasks: TaskService) {}
 
-  list = (_request: Request, response: Response): void => {
-    response.status(200).json({ data: this.tasks.list() });
+  list = (request: Request, response: Response): void => {
+    const options = parseTaskListOptions(request.query.limit, request.query.offset);
+    response.status(200).json({
+      data: this.tasks.list(options),
+      pagination: options,
+    });
   };
 
   create = (request: Request, response: Response): void => {

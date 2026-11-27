@@ -1,5 +1,5 @@
 import type { DatabaseSync, SQLOutputValue } from 'node:sqlite';
-import { taskStatuses, type CreateTaskInput, type Task, type TaskStatus, type UpdateTaskInput } from '../domain/task.js';
+import { taskStatuses, type CreateTaskInput, type Task, type TaskListOptions, type TaskStatus, type UpdateTaskInput } from '../domain/task.js';
 
 type TaskRow = Record<string, SQLOutputValue>;
 
@@ -47,14 +47,17 @@ export class TaskRepository {
     return mapTask(this.database.prepare('SELECT * FROM tasks WHERE id = ?').get(id));
   }
 
-  list(): Task[] {
-    return this.database.prepare('SELECT * FROM tasks ORDER BY id ASC').all().map((row) => {
+  list(options: TaskListOptions = { limit: 20, offset: 0 }): Task[] {
+    return this.database
+      .prepare('SELECT * FROM tasks ORDER BY id ASC LIMIT ? OFFSET ?')
+      .all(options.limit, options.offset)
+      .map((row) => {
       const task = mapTask(row);
       if (!task) {
         throw new Error('Database returned an empty task row');
       }
       return task;
-    });
+      });
   }
 
   update(id: number, input: UpdateTaskInput): Task | null {
