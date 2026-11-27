@@ -27,6 +27,21 @@ test('validation failures and malformed JSON have stable 400 responses', async (
   });
 });
 
+test('oversized JSON bodies return a stable 413 response', async (context) => {
+  const api = await createTestServer();
+  context.after(api.close);
+
+  const response = await fetch(`${api.baseUrl}/tasks`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'Large task', description: 'x'.repeat(40_000) }),
+  });
+  assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), {
+    error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body exceeds the 32 KB limit' },
+  });
+});
+
 test('unknown paths return the shared not-found response', async (context) => {
   const api = await createTestServer();
   context.after(api.close);
