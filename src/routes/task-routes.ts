@@ -2,10 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { TaskService } from '../services/task-service.js';
 import { parseTaskId, validateCreateTask, validateUpdateTask } from '../validation/task-validation.js';
-
-function sendNotFound(response: Response): void {
-  response.status(404).json({ error: { code: 'NOT_FOUND', message: 'Task not found' } });
-}
+import { NotFoundError } from '../middleware/error-handler.js';
 
 export function createTaskRouter(tasks: TaskService): Router {
   const router = Router();
@@ -22,8 +19,7 @@ export function createTaskRouter(tasks: TaskService): Router {
   router.get('/:id', (request: Request, response: Response) => {
     const task = tasks.getById(parseTaskId(request.params.id));
     if (!task) {
-      sendNotFound(response);
-      return;
+      throw new NotFoundError('Task not found');
     }
     response.status(200).json({ data: task });
   });
@@ -34,16 +30,14 @@ export function createTaskRouter(tasks: TaskService): Router {
       validateUpdateTask(request.body),
     );
     if (!task) {
-      sendNotFound(response);
-      return;
+      throw new NotFoundError('Task not found');
     }
     response.status(200).json({ data: task });
   });
 
   router.delete('/:id', (request: Request, response: Response) => {
     if (!tasks.delete(parseTaskId(request.params.id))) {
-      sendNotFound(response);
-      return;
+      throw new NotFoundError('Task not found');
     }
     response.status(204).end();
   });
