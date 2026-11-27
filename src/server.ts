@@ -3,14 +3,15 @@ import { openDatabase } from './db/connection.js';
 import { runMigrations } from './db/migrations.js';
 import { TaskRepository } from './db/task-repository.js';
 import { TaskService } from './services/task-service.js';
+import { loadConfig } from './config.js';
 
-const port = Number(process.env.PORT ?? 3000);
-const database = openDatabase();
+const config = loadConfig();
+const database = openDatabase(config.databasePath);
 runMigrations(database);
 const app = createApp(new TaskService(new TaskRepository(database)));
 
-app.listen(port, () => {
-  console.log(`Task Manager API listening on port ${port}`);
+app.listen(config.port, () => {
+  console.log(`Task Manager API listening on port ${config.port}`);
 });
 
 process.on('SIGINT', () => {
