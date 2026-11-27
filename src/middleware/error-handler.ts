@@ -43,7 +43,11 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _request, resp
     return;
   }
 
-  console.error('Unhandled API error:', error);
+  console.error({
+    message: 'Unhandled API error',
+    requestId: response.locals.requestId,
+    error,
+  });
   response.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' },
   });

@@ -2,10 +2,12 @@ import express from 'express';
 import type { TaskService } from './services/task-service.js';
 import { createTaskRouter } from './routes/task-routes.js';
 import { errorHandler, NotFoundError } from './middleware/error-handler.js';
+import { requestIdMiddleware } from './middleware/request-id.js';
 
 export function createApp(tasks: TaskService) {
   const app = express();
 
+  app.use(requestIdMiddleware);
   app.use(express.json());
   app.get('/health', (_request, response) => {
     response.status(200).json({ status: 'ok' });

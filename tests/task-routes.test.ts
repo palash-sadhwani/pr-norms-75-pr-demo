@@ -8,6 +8,7 @@ test('task routes expose CRUD operations with stable response envelopes', async 
 
   const initialList = await fetch(`${api.baseUrl}/tasks`);
   assert.equal(initialList.status, 200);
+  assert.match(initialList.headers.get('x-request-id') ?? '', /^[\da-f-]{36}$/i);
   assert.deepEqual(await initialList.json(), { data: [] });
 
   const createdResponse = await fetch(`${api.baseUrl}/tasks`, {
