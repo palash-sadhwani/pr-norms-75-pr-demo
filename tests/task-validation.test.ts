@@ -29,7 +29,13 @@ test('task IDs must be positive safe integers', () => {
 test('pagination options have bounded defaults and reject invalid ranges', () => {
   assert.deepEqual(parseTaskListOptions(undefined, undefined), { limit: 20, offset: 0 });
   assert.deepEqual(parseTaskListOptions('50', '4'), { limit: 50, offset: 4 });
+  assert.deepEqual(parseTaskListOptions('10', '0', 'open'), {
+    limit: 10,
+    offset: 0,
+    status: 'open',
+  });
   assert.throws(() => parseTaskListOptions('0', '0'), /limit must be between/);
   assert.throws(() => parseTaskListOptions('101', '0'), /limit must be between/);
   assert.throws(() => parseTaskListOptions('10', '-1'), /non-negative integer/);
+  assert.throws(() => parseTaskListOptions('10', '0', 'blocked'), /status must be one of/);
 });

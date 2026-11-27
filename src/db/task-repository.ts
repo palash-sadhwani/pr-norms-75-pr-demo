@@ -48,9 +48,13 @@ export class TaskRepository {
   }
 
   list(options: TaskListOptions = { limit: 20, offset: 0 }): Task[] {
+    const statusFilter = options.status === undefined ? '' : ' WHERE status = ?';
+    const values = options.status === undefined
+      ? [options.limit, options.offset]
+      : [options.status, options.limit, options.offset];
     return this.database
-      .prepare('SELECT * FROM tasks ORDER BY id ASC LIMIT ? OFFSET ?')
-      .all(options.limit, options.offset)
+      .prepare(`SELECT * FROM tasks${statusFilter} ORDER BY id ASC LIMIT ? OFFSET ?`)
+      .all(...values)
       .map((row) => {
       const task = mapTask(row);
       if (!task) {

@@ -41,6 +41,28 @@ test('task routes expose CRUD operations with stable response envelopes', async 
     assert.deepEqual(page.data.map((task) => task.title), ['Second task']);
     assert.deepEqual(page.pagination, { limit: 1, offset: 1 });
   });
+
+  test('task list can be filtered by a supported status', async (context) => {
+    const api = await createTestServer();
+    context.after(api.close);
+
+    const createdResponse = await fetch(`${api.baseUrl}/tasks`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ title: 'Complete this task' }),
+    });
+    const created = await createdResponse.json() as { data: { id: number } };
+    await fetch(`${api.baseUrl}/tasks/${created.data.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ status: 'completed' }),
+    });
+
+    const response = await fetch(`${api.baseUrl}/tasks?status=completed`);
+    assert.equal(response.status, 200);
+    const page = await response.json() as { data: Array<{ status: string }> };
+    assert.deepEqual(page.data.map((task) => task.status), ['completed']);
+  });
   assert.equal(createdResponse.status, 201);
   const created = await createdResponse.json() as { data: { id: number; title: string } };
   assert.equal(createdResponse.headers.get('location'), `/tasks/${created.data.id}`);

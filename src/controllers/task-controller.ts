@@ -7,7 +7,11 @@ export class TaskController {
   constructor(private readonly tasks: TaskService) {}
 
   list = (request: Request, response: Response): void => {
-    const options = parseTaskListOptions(request.query.limit, request.query.offset);
+    const options = parseTaskListOptions(
+      request.query.limit,
+      request.query.offset,
+      request.query.status,
+    );
     response.status(200).json({
       data: this.tasks.list(options),
       pagination: options,
