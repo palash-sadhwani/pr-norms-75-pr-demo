@@ -42,6 +42,14 @@ export class TaskController {
     response.status(200).json({ data: task });
   };
 
+  complete = (request: Request, response: Response): void => {
+    const task = this.tasks.complete(parseTaskId(request.params.id));
+    if (!task) {
+      throw new NotFoundError('Task not found');
+    }
+    response.status(200).json({ data: task });
+  };
+
   delete = (request: Request, response: Response): void => {
     if (!this.tasks.delete(parseTaskId(request.params.id))) {
       throw new NotFoundError('Task not found');

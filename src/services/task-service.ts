@@ -58,6 +58,14 @@ export class TaskService {
     return this.tasks.update(id, normalizedInput);
   }
 
+  complete(id: number): Task | null {
+    const task = this.tasks.getById(id);
+    if (!task || task.status === 'completed') {
+      return task;
+    }
+    return this.tasks.update(id, { status: 'completed' });
+  }
+
   delete(id: number): boolean {
     return this.tasks.delete(id);
   }
