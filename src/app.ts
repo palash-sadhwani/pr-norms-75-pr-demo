@@ -1,6 +1,7 @@
 import express from 'express';
 import type { TaskService } from './services/task-service.js';
 import { createTaskRouter } from './routes/task-routes.js';
+import { errorHandler, NotFoundError } from './middleware/error-handler.js';
 
 export function createApp(tasks: TaskService) {
   const app = express();
@@ -10,6 +11,10 @@ export function createApp(tasks: TaskService) {
     response.status(200).json({ status: 'ok' });
   });
   app.use('/tasks', createTaskRouter(tasks));
+  app.use((_request, _response, next) => {
+    next(new NotFoundError('Route not found'));
+  });
+  app.use(errorHandler);
 
   return app;
 }
