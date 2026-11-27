@@ -43,6 +43,13 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _request, resp
     return;
   }
 
+  if (error instanceof Error && 'type' in error && error.type === 'entity.too.large') {
+    response.status(413).json({
+      error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body exceeds the 32 KB limit' },
+    });
+    return;
+  }
+
   console.error({
     message: 'Unhandled API error',
     requestId: response.locals.requestId,

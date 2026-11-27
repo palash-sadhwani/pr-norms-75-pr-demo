@@ -35,7 +35,11 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { '201': { description: 'Task created' }, '400': { description: 'Invalid body' } },
+        responses: {
+          '201': { description: 'Task created' },
+          '400': { description: 'Invalid body' },
+          '413': { description: 'Request body exceeds the configured size limit' },
+        },
       },
     },
     '/tasks/{id}': {
