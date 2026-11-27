@@ -1,4 +1,4 @@
-import type { CreateTaskInput, Task, UpdateTaskInput } from '../domain/task.js';
+import type { CreateTaskInput, Task, TaskListOptions, UpdateTaskInput } from '../domain/task.js';
 import { TaskRepository } from '../db/task-repository.js';
 
 export class TaskInputError extends Error {
@@ -37,8 +37,8 @@ export class TaskService {
     return this.tasks.getById(id);
   }
 
-  list(): Task[] {
-    return this.tasks.list();
+  list(options: TaskListOptions): Task[] {
+    return this.tasks.list(options);
   }
 
   update(id: number, input: UpdateTaskInput): Task | null {

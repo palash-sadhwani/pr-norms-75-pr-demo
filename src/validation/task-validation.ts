@@ -1,4 +1,4 @@
-import { taskStatuses, type CreateTaskInput, type TaskStatus, type UpdateTaskInput } from '../domain/task.js';
+import { taskStatuses, type CreateTaskInput, type TaskListOptions, type TaskStatus, type UpdateTaskInput } from '../domain/task.js';
 
 export class RequestValidationError extends Error {
   constructor(message: string) {
@@ -81,4 +81,30 @@ export function parseTaskId(value: unknown): number {
     throw new RequestValidationError('Task id is outside the supported range');
   }
   return id;
+}
+
+function parseIntegerQuery(value: unknown, fallback: number, field: string): number {
+  if (value === undefined) {
+    return fallback;
+  }
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+    throw new RequestValidationError(`${field} must be a non-negative integer`);
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new RequestValidationError(`${field} is outside the supported range`);
+  }
+  return parsed;
+}
+
+export function parseTaskListOptions(limitValue: unknown, offsetValue: unknown): TaskListOptions {
+  const limit = parseIntegerQuery(limitValue, 20, 'limit');
+  const offset = parseIntegerQuery(offsetValue, 0, 'offset');
+  if (limit < 1 || limit > 100) {
+    throw new RequestValidationError('limit must be between 1 and 100');
+  }
+  if (offset > 1_000_000) {
+    throw new RequestValidationError('offset must not exceed 1000000');
+  }
+  return { limit, offset };
 }
