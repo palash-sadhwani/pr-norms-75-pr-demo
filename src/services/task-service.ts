@@ -8,6 +8,13 @@ export class TaskInputError extends Error {
   }
 }
 
+export class TaskStateConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TaskStateConflictError';
+  }
+}
+
 function normalizeTitle(title: string): string {
   const normalized = title.trim();
   if (normalized.length === 0 || normalized.length > 200) {
@@ -35,6 +42,16 @@ export class TaskService {
   }
 
   update(id: number, input: UpdateTaskInput): Task | null {
+    if (input.status !== undefined) {
+      const current = this.tasks.getById(id);
+      if (!current) {
+        return null;
+      }
+      if (current.status === 'completed' && input.status !== 'completed') {
+        throw new TaskStateConflictError('Completed tasks cannot be reopened');
+      }
+    }
+
     const normalizedInput = input.title === undefined
       ? input
       : { ...input, title: normalizeTitle(input.title) };

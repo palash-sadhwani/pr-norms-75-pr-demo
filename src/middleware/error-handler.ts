@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from 'express';
-import { TaskInputError } from '../services/task-service.js';
+import { TaskInputError, TaskStateConflictError } from '../services/task-service.js';
 import { RequestValidationError } from '../validation/task-validation.js';
 
 export class NotFoundError extends Error {
@@ -18,6 +18,13 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _request, resp
   if (error instanceof RequestValidationError || error instanceof TaskInputError) {
     response.status(400).json({
       error: { code: 'INVALID_REQUEST', message: error.message },
+    });
+    return;
+  }
+
+  if (error instanceof TaskStateConflictError) {
+    response.status(409).json({
+      error: { code: 'TASK_STATE_CONFLICT', message: error.message },
     });
     return;
   }
