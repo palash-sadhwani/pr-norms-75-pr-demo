@@ -97,7 +97,11 @@ function parseIntegerQuery(value: unknown, fallback: number, field: string): num
   return parsed;
 }
 
-export function parseTaskListOptions(limitValue: unknown, offsetValue: unknown): TaskListOptions {
+export function parseTaskListOptions(
+  limitValue: unknown,
+  offsetValue: unknown,
+  statusValue?: unknown,
+): TaskListOptions {
   const limit = parseIntegerQuery(limitValue, 20, 'limit');
   const offset = parseIntegerQuery(offsetValue, 0, 'offset');
   if (limit < 1 || limit > 100) {
@@ -106,5 +110,10 @@ export function parseTaskListOptions(limitValue: unknown, offsetValue: unknown):
   if (offset > 1_000_000) {
     throw new RequestValidationError('offset must not exceed 1000000');
   }
-  return { limit, offset };
+  if (statusValue !== undefined && !isTaskStatus(statusValue)) {
+    throw new RequestValidationError(`status must be one of: ${taskStatuses.join(', ')}`);
+  }
+  return statusValue === undefined
+    ? { limit, offset }
+    : { limit, offset, status: statusValue };
 }

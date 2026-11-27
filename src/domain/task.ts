@@ -25,4 +25,5 @@ export interface UpdateTaskInput {
 export interface TaskListOptions {
   limit: number;
   offset: number;
+  status?: TaskStatus;
 }
