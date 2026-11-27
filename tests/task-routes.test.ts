@@ -17,6 +17,7 @@ test('task routes expose CRUD operations with stable response envelopes', async 
   });
   assert.equal(createdResponse.status, 201);
   const created = await createdResponse.json() as { data: { id: number; title: string } };
+  assert.equal(createdResponse.headers.get('location'), `/tasks/${created.data.id}`);
   assert.equal(created.data.title, 'Review API changes');
 
   const fetched = await fetch(`${api.baseUrl}/tasks/${created.data.id}`);

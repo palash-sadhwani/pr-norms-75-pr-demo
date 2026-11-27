@@ -12,7 +12,7 @@ export class TaskController {
 
   create = (request: Request, response: Response): void => {
     const task = this.tasks.create(validateCreateTask(request.body));
-    response.status(201).json({ data: task });
+    response.location(`/tasks/${task.id}`).status(201).json({ data: task });
   };
 
   getById = (request: Request, response: Response): void => {
