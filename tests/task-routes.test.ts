@@ -63,6 +63,28 @@ test('task routes expose CRUD operations with stable response envelopes', async 
     const page = await response.json() as { data: Array<{ status: string }> };
     assert.deepEqual(page.data.map((task) => task.status), ['completed']);
   });
+
+  test('completing a task is safe to retry', async (context) => {
+    const api = await createTestServer();
+    context.after(api.close);
+
+    const createResponse = await fetch(`${api.baseUrl}/tasks`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ title: 'Ship the feature' }),
+    });
+    const created = await createResponse.json() as { data: { id: number } };
+
+    const firstCompletion = await fetch(`${api.baseUrl}/tasks/${created.data.id}/complete`, { method: 'POST' });
+    const firstTask = await firstCompletion.json() as { data: { status: string; updatedAt: string } };
+    const secondCompletion = await fetch(`${api.baseUrl}/tasks/${created.data.id}/complete`, { method: 'POST' });
+    const secondTask = await secondCompletion.json() as { data: { status: string; updatedAt: string } };
+
+    assert.equal(firstCompletion.status, 200);
+    assert.equal(secondCompletion.status, 200);
+    assert.equal(firstTask.data.status, 'completed');
+    assert.equal(secondTask.data.updatedAt, firstTask.data.updatedAt);
+  });
   assert.equal(createdResponse.status, 201);
   const created = await createdResponse.json() as { data: { id: number; title: string } };
   assert.equal(createdResponse.headers.get('location'), `/tasks/${created.data.id}`);
